@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &844884768943162397
 RectTransform:
   m_ObjectHideFlags: 0
@@ -164,10 +164,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a6b14067615c6d40b55818b474ac0a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  up: {fileID: 67926103340967526, guid: d7931b72700731b498944b6cfc4747dd, type: 3}
-  down: {fileID: -2938970880757876879, guid: d7931b72700731b498944b6cfc4747dd, type: 3}
-  left: {fileID: 5635105361348811957, guid: d7931b72700731b498944b6cfc4747dd, type: 3}
-  right: {fileID: -2429919002490121231, guid: d7931b72700731b498944b6cfc4747dd, type: 3}
+  up: {fileID: 1140529716840407827, guid: 5c97081780d2df64fb32ded1dfdd0d24, type: 3}
+  down: {fileID: 1725167464582515547, guid: 5c97081780d2df64fb32ded1dfdd0d24, type: 3}
+  left: {fileID: -2305729039888356390, guid: 5c97081780d2df64fb32ded1dfdd0d24, type: 3}
+  right: {fileID: 3837000200997011783, guid: 5c97081780d2df64fb32ded1dfdd0d24, type: 3}
+  upC: {fileID: -7931685608172542041, guid: 310a483bcc386d44b80fd8f34dd2fae1, type: 3}
+  downC: {fileID: 1344778921313363361, guid: 310a483bcc386d44b80fd8f34dd2fae1, type: 3}
+  leftC: {fileID: -8198533233065740177, guid: 310a483bcc386d44b80fd8f34dd2fae1, type: 3}
+  rightC: {fileID: 3446496531608898971, guid: 310a483bcc386d44b80fd8f34dd2fae1, type: 3}
   beat: 0
   note: 0
   view: {fileID: 2842405119296628111}

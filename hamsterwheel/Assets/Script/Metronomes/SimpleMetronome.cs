@@ -87,7 +87,6 @@ public class SimpleMetronome: MonoBehaviour, IMetronome
 
         while (delta >= nextTick)
         {
-            Debug.Log("TICK");
             delta -= TimeBetweenBeats;
             willPlay = true; 
             pendingBeats++;

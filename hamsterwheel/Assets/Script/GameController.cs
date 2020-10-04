@@ -2,6 +2,8 @@
 using System.Collections;
 using UnityEngine.InputSystem;
 using System;
+using UnityEngine.UI;
+using DG.Tweening;
 
 public enum NoteType
 {
@@ -19,6 +21,14 @@ public enum NoteHitType
     WrongTime, // Wrong key or Too early
     Skipped // We were expecting a note and there was nothing
 }
+
+public enum GameState
+{
+    Init,
+    Running,
+    Won
+}
+
 //public class NoteInfo
 //{
 //    public NoteType id;
@@ -39,6 +49,9 @@ public class GameController : MonoBehaviour
 
     public InputActionAsset Controls;
     public Animator Hamster; // Replace type
+    public RotateInfinite Wheel;
+
+    public float DefaultRotationSpeed = 360;
 
     public float powerBarLevel = 10;
     public float powerBarMaxLevel = 100;
@@ -47,6 +60,17 @@ public class GameController : MonoBehaviour
     public float perfectHitScore = 8;
     public float wrongHitScore = -5;
     public float skippedHitScore = -2;
+
+    public Image powerBar;
+    public RectTransform barContainer;
+
+    public RectTransform noteContainer;
+    public Text ok;
+    public Text miss;
+    public Text perfect;
+
+    public RectTransform victoryContainer;
+    public RectTransform startContainer;
 
     [SerializeField] SongController _songController = null;
 
@@ -60,10 +84,17 @@ public class GameController : MonoBehaviour
 
     float[] _noteStates;
     float _restartPressed;
+    float startPowerLevel;
 
-    // Use this for initialization
-    void Start()
+    public GameState _currentState;
+
+    WaitForSeconds textWait;
+
+    private void Awake()
     {
+        startPowerLevel = powerBarLevel;
+        textWait = new WaitForSeconds(0.5f);
+        _currentState = GameState.Init;
         _map = Controls.FindActionMap("Player");
 
         _up = _map.FindAction("Up");
@@ -71,7 +102,11 @@ public class GameController : MonoBehaviour
         _left = _map.FindAction("Left");
         _right = _map.FindAction("Right");
         _restart = _map.FindAction("Restart");
-        
+    }
+
+    // Use this for initialization
+    void Start()
+    {
         _noteStates = new float[]
         {
             -1,-1,-1,-1
@@ -79,6 +114,27 @@ public class GameController : MonoBehaviour
         _restartPressed = -1;
 
         _songController.BeatExpired += OnBeatExpired;
+        _currentState = GameState.Running;
+
+        float bpmRatio = _songController.CurrentSong.bpm / 120f;
+
+        Hamster.speed = bpmRatio;
+        Wheel.StartGame(DefaultRotationSpeed * bpmRatio);
+
+        victoryContainer.gameObject.SetActive(false);
+        noteContainer.gameObject.SetActive(false);
+        barContainer.gameObject.SetActive(true);
+        powerBarLevel = startPowerLevel;
+        powerBar.fillAmount = powerBarLevel / powerBarMaxLevel;
+        StartCoroutine(LevelStartText());
+    }
+
+    IEnumerator LevelStartText()
+    {
+        startContainer.gameObject.SetActive(true);
+        yield return new WaitForSeconds(1f);
+
+        startContainer.gameObject.SetActive(false);
     }
 
     private void OnDestroy()
@@ -86,16 +142,13 @@ public class GameController : MonoBehaviour
         _songController.BeatExpired -= OnBeatExpired;
     }
 
-
-    private void OnRestart(InputAction.CallbackContext obj)
+    public IEnumerator RestartGame()
     {
-        RestartGame();
-    }
-
-    public void RestartGame()
-    {
-        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        yield return new WaitForSeconds(0.1f);
+        DOTween.Clear();
+        yield return new WaitForSeconds(0.1f);
         Debug.Log("RESTART ALL THE THINGS!");
+        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
     }
 
     #region input
@@ -135,6 +188,13 @@ public class GameController : MonoBehaviour
     void Update()
     {
         var now = Time.time;
+        (bool restartPressed, bool restartJustChanged, float _) = ReadAction(_restart, now, ref _restartPressed);
+        if (restartPressed && restartJustChanged)
+        {
+            StartCoroutine(RestartGame());
+        }
+
+
         var mappings = new (NoteType, InputAction)[]
         {
            (NoteType.Up, _up),
@@ -144,6 +204,11 @@ public class GameController : MonoBehaviour
         };
         bool notePressed;
         bool noteJustChanged;
+
+        if(_currentState != GameState.Running)
+        {
+            return;
+        }
 
         for(int i = 0; i < mappings.Length; ++i)
         {
@@ -156,11 +221,6 @@ public class GameController : MonoBehaviour
             }
         }
 
-        (bool restartPressed, bool restartJustChanged, float _) = ReadAction(_restart, now, ref _restartPressed);
-        if(restartPressed && restartJustChanged)
-        {
-            RestartGame();
-        }
     }
 
     public void NotePressed(string noteName)
@@ -217,9 +277,12 @@ public class GameController : MonoBehaviour
             default:
                 break;
         }
-        powerBarLevel = Mathf.Clamp(powerBarLevel, 0, powerBarMaxLevel);
-        Debug.Log($"Processed { hitType}. New score = {powerBarLevel}");
+        StartCoroutine(ShowText(hitType));
 
+        powerBarLevel = Mathf.Clamp(powerBarLevel, 0, powerBarMaxLevel);
+        powerBar.fillAmount = powerBarLevel / powerBarMaxLevel;
+
+        
         if (Mathf.Approximately(powerBarLevel, 0))
         {
             // Small "oh oh" animation??
@@ -228,8 +291,67 @@ public class GameController : MonoBehaviour
         else if (Mathf.Approximately(powerBarLevel, powerBarMaxLevel))
         {
             // Next wheel state / next level / game won
-            Debug.Log($"<color=green>CRRRRAAAAACK - The f*cking wheel seems to be suffering</color>");
+            StartCoroutine(VictoryRoutine());
         }
+    }
+
+    private IEnumerator VictoryRoutine()
+    {
+        noteContainer.gameObject.SetActive(false);
+        victoryContainer.gameObject.SetActive(true);
+        barContainer.gameObject.SetActive(false);
+
+        _currentState = GameState.Won;
+        _songController.BeatExpired -= OnBeatExpired;
+        _songController.GameWon();
+        Wheel.Stop();
+        Hamster.speed = 0;
+        yield return null;
+    }
+
+    private IEnumerator ShowText(NoteHitType hitType)
+    {
+        noteContainer.gameObject.SetActive(true);
+        Text active = null;
+        switch (hitType)
+        {
+            case NoteHitType.OK:
+                active = ok;
+                ok.gameObject.SetActive(true);
+                perfect.gameObject.SetActive(false);
+                miss.gameObject.SetActive(false);
+                break;
+            case NoteHitType.Perfect:
+                active = perfect;
+                ok.gameObject.SetActive(false);
+                perfect.gameObject.SetActive(true);
+                miss.gameObject.SetActive(false);
+                break;
+            case NoteHitType.WrongKey:
+            case NoteHitType.WrongTime:
+            case NoteHitType.Skipped:
+                active = miss;
+                ok.gameObject.SetActive(false);
+                perfect.gameObject.SetActive(false);
+                miss.gameObject.SetActive(true);
+                break;
+            default:
+                break;
+        }
+        if(active != null)
+        {
+            var activeColor = active.color;
+            activeColor.a = 0.1f;
+            active.color = activeColor;
+            active.DOFade(1, 0.2f);
+            active.transform.DOPunchScale(0.2f * Vector3.one, 0.3f);
+        }
+        yield return textWait;
+        var endColor = active.color;
+        endColor.a = 1;
+        active.color = endColor;
+
+        noteContainer.gameObject.SetActive(false);
     }
 
 

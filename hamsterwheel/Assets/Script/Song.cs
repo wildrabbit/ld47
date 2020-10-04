@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 public struct BeatEntry
 {
@@ -39,8 +40,10 @@ public class Song
                 continue;
             }
             BeatEntry b = new BeatEntry();
-            float.TryParse(tokens[0], out b.Beat);
-            float.TryParse(tokens[1], out b.BeatDuration);
+            CultureInfo sysCulture = CultureInfo.CurrentCulture;
+            CultureInfo angloCulture = CultureInfo.GetCultureInfo("en-US");
+            float.TryParse(tokens[0], NumberStyles.Any, CultureInfo.InvariantCulture, out b.Beat);
+            float.TryParse(tokens[1], NumberStyles.Any, CultureInfo.InvariantCulture, out b.BeatDuration);
             int type;
             System.Int32.TryParse(tokens[2], out type);
             b.ExpectedNote= (NoteType)type;
