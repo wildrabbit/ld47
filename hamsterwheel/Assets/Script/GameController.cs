@@ -11,12 +11,22 @@ public enum NoteType
     Right,
 }
 
-//public class NoteData
+public enum NoteHitType
+{
+    OK,       // Default success frame
+    Perfect, // Smaller success frame
+    Missed, // Wrong key or Too early
+    Skipped // We were expecting a note and there was nothing
+}
+//public class NoteInfo
 //{
 //    public NoteType id;
 //    public InputAction action;
 //    public string actionName;
 //    public string animatorTrigger;
+//    public bool isPressed;
+//    public float pressStarted;
+//    public bool justPressed;
 //}
 
 public class GameController : MonoBehaviour
@@ -29,6 +39,13 @@ public class GameController : MonoBehaviour
     public InputActionAsset Controls;
     public Animator Hamster; // Replace type
 
+    public float powerBarLevel = 0;
+    public float powerBarMaxLevel = 100;
+
+    public float normalHitScore = 3;
+    public float perfectHitScore = 8;
+    public float wrongHitScore = -5;
+    public float skippedHitScore = -2;
 
     InputAction _up;
     InputAction _down;
@@ -67,13 +84,11 @@ public class GameController : MonoBehaviour
 
     public void RestartGame()
     {
+        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
         Debug.Log("RESTART ALL THE THINGS!");
     }
 
-    private void OnDestroy()
-    {
-    }
-
+    #region input
     private (bool, bool, float) ReadNote(NoteType note, float now, InputAction action)
     {
         int idx = (int)note;
@@ -105,6 +120,7 @@ public class GameController : MonoBehaviour
         }
         return (pressed, stateChange, elapsed);
     }
+    #endregion input
 
 
     // Update is called once per frame
@@ -160,5 +176,44 @@ public class GameController : MonoBehaviour
 
         Hamster.SetTrigger(triggerMappings[idx]);
     }
+
+    #region power
+    public void NoteHit(NoteHitType hitType)
+    {
+        switch (hitType)
+        {
+            case NoteHitType.OK:
+                powerBarLevel += normalHitScore;
+                break;
+            case NoteHitType.Perfect:
+                powerBarLevel += perfectHitScore;
+                break;
+            case NoteHitType.Missed:
+                powerBarLevel += wrongHitScore;
+                break;
+            case NoteHitType.Skipped:
+                powerBarLevel += skippedHitScore;
+                break;
+            default:
+                break;
+        }
+        powerBarLevel = Mathf.Clamp(powerBarLevel, 0, powerBarMaxLevel);
+        Debug.Log($"Processed { hitType}. New score = {powerBarLevel}");
+
+        if (Mathf.Approximately(powerBarLevel, 0))
+        {
+            // Small "oh oh" animation??
+            Debug.Log($"Keep trying!");
+        }
+        else if (Mathf.Approximately(powerBarLevel, powerBarMaxLevel))
+        {
+            // Next wheel state / next level / game won
+            Debug.Log($"CRRRRAAAAACK - The f*cking wheel seems to be suffering");
+        }
+    }
+
+
+    #endregion
+
 
 }
