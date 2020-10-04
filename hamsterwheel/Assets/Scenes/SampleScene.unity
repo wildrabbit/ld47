@@ -1094,6 +1094,7 @@ MonoBehaviour:
   perfectHitScore: 8
   wrongHitScore: -5
   skippedHitScore: -2
+  _songController: {fileID: 1640000849}
 --- !u!4 &904843440
 Transform:
   m_ObjectHideFlags: 0
@@ -1417,7 +1418,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 120.000015, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 4, y: 4}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1273842197
@@ -1924,7 +1925,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 120, y: 0}
   m_SizeDelta: {x: 4, y: 4}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1607053768
@@ -2187,7 +2188,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CurrentSong:
     songResource: {fileID: 0}
-    bpm: 80
+    Offset: 10
+    bpm: 90
     songSheet: {fileID: 4900000, guid: d285d67f80c45c54c9532189c9babba5, type: 3}
     signatureHi: 4
     signatureLo: 4
@@ -2198,7 +2200,9 @@ MonoBehaviour:
   endNote: {fileID: 1093058611}
   container: {fileID: 120130744}
   NotePrefab: {fileID: 211828577718152787, guid: 901bf99edf38b5a458c568ed1581ff53, type: 3}
-  hitThreshold: 0.30000001192092896
+  hitThreshold: 0.5
+  perfectThreshold: 0.25
+  expireRatio: 1.2
 --- !u!4 &1640000850
 Transform:
   m_ObjectHideFlags: 0

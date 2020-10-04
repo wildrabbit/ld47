@@ -13,7 +13,7 @@ public class NoteMarker : MonoBehaviour
     public float beat;
     public NoteType note;
 
-    [SerializeField] UnityEngine.UI.Image view;
+    [SerializeField] UnityEngine.UI.Image view = null;
 
     Sprite[] mappings;
 
@@ -38,10 +38,10 @@ public class NoteMarker : MonoBehaviour
         this.endPos = endPos;
     }
 
-    public bool UpdateNote(float currentSongBeat, float beatsPreview)
+    public void UpdateNote(float currentSongBeat, float beatsPreview, out float ratio)
     {
-        float lerpRatio = (beatsPreview - (beat - currentSongBeat)) / beatsPreview;
-        transform.position = Vector2.Lerp(startPos, endPos, lerpRatio);
-        return lerpRatio > 1;
+        ratio = (beatsPreview - (beat - currentSongBeat)) / beatsPreview;
+
+        transform.position = Vector2.LerpUnclamped(startPos, endPos, ratio); // We will allow overshoot
     }
 }

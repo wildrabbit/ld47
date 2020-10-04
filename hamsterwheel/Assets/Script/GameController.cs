@@ -15,7 +15,8 @@ public enum NoteHitType
 {
     OK,       // Default success frame
     Perfect, // Smaller success frame
-    Missed, // Wrong key or Too early
+    WrongKey,
+    WrongTime, // Wrong key or Too early
     Skipped // We were expecting a note and there was nothing
 }
 //public class NoteInfo
@@ -39,13 +40,15 @@ public class GameController : MonoBehaviour
     public InputActionAsset Controls;
     public Animator Hamster; // Replace type
 
-    public float powerBarLevel = 0;
+    public float powerBarLevel = 10;
     public float powerBarMaxLevel = 100;
 
     public float normalHitScore = 3;
     public float perfectHitScore = 8;
     public float wrongHitScore = -5;
     public float skippedHitScore = -2;
+
+    [SerializeField] SongController _songController = null;
 
     InputAction _up;
     InputAction _down;
@@ -74,9 +77,16 @@ public class GameController : MonoBehaviour
             -1,-1,-1,-1
         };
         _restartPressed = -1;
+
+        _songController.BeatExpired += OnBeatExpired;
     }
 
-    
+    private void OnDestroy()
+    {
+        _songController.BeatExpired -= OnBeatExpired;
+    }
+
+
     private void OnRestart(InputAction.CallbackContext obj)
     {
         RestartGame();
@@ -105,8 +115,7 @@ public class GameController : MonoBehaviour
             stateChange = lastPressedTime < 0;
             if(stateChange)
             {
-                lastPressedTime = now;
-                Debug.Log($"First press for {action}");
+                lastPressedTime = now;                
             }
         }
         else
@@ -115,7 +124,6 @@ public class GameController : MonoBehaviour
             if(stateChange)
             {
                 lastPressedTime = -1;
-                Debug.Log($"First release for {action}. Time spent pressed was {elapsed}");
             }
         }
         return (pressed, stateChange, elapsed);
@@ -175,6 +183,17 @@ public class GameController : MonoBehaviour
         };
 
         Hamster.SetTrigger(triggerMappings[idx]);
+        bool validInput = _songController.RecordedNote(note, out var hitType);
+        if(validInput)
+        {
+            NoteHit(hitType);
+        }
+    }
+
+
+    private void OnBeatExpired(float arg1, bool arg2)
+    {
+        NoteHit(NoteHitType.Skipped);
     }
 
     #region power
@@ -188,7 +207,8 @@ public class GameController : MonoBehaviour
             case NoteHitType.Perfect:
                 powerBarLevel += perfectHitScore;
                 break;
-            case NoteHitType.Missed:
+            case NoteHitType.WrongKey:
+            case NoteHitType.WrongTime:
                 powerBarLevel += wrongHitScore;
                 break;
             case NoteHitType.Skipped:
@@ -203,12 +223,12 @@ public class GameController : MonoBehaviour
         if (Mathf.Approximately(powerBarLevel, 0))
         {
             // Small "oh oh" animation??
-            Debug.Log($"Keep trying!");
+            Debug.Log($"<color=cyan>Don't lose hope, keep trying!</color>");
         }
         else if (Mathf.Approximately(powerBarLevel, powerBarMaxLevel))
         {
             // Next wheel state / next level / game won
-            Debug.Log($"CRRRRAAAAACK - The f*cking wheel seems to be suffering");
+            Debug.Log($"<color=green>CRRRRAAAAACK - The f*cking wheel seems to be suffering</color>");
         }
     }
 

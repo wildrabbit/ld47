@@ -22,6 +22,8 @@ public class SongController : MonoBehaviour
     double secsPerBeat;
 
     public double hitThreshold = 0.3f;
+    public double perfectThreshold = 0.1f;
+    public float expireRatio = 1.2f;
 
     int signatureHi;
     int signatureLo;
@@ -29,12 +31,13 @@ public class SongController : MonoBehaviour
     int nextNoteIdx;
 
     float beatsShownInAdvance = 3;
+    bool foundFirst;
 
     IMetronome Metronome;
 
     List<NoteMarker> notesSpawned;
 
-    bool started;
+    public event Action<float, bool> BeatExpired;
 
     public void Init()
     {
@@ -73,17 +76,38 @@ public class SongController : MonoBehaviour
 
         Metronome.SetStartTime(songStartTime); // Reuse for music clip
         nextNoteIdx = 0;
-        // Sync
+        foundFirst = false;
 
-        started = false;
+        float hitFirst = (float)(beatsShownInAdvance - secsPerBeat * hitThreshold) / beatsShownInAdvance;
+        float hitLast = (float)(beatsShownInAdvance + secsPerBeat * hitThreshold) / beatsShownInAdvance;
+        //1 => ahora == actual
+
+        hitBefore = Vector2.LerpUnclamped(startNote.position, endNote.position, hitFirst);
+        hitAfter = Vector2.LerpUnclamped(startNote.position, endNote.position, hitLast);
+
+        float perfectFirst = (float)(beatsShownInAdvance - secsPerBeat * perfectThreshold) / beatsShownInAdvance;
+        float perfectLast = (float)(beatsShownInAdvance + secsPerBeat * perfectThreshold) / beatsShownInAdvance;
+        perfectBefore = Vector2.LerpUnclamped(startNote.position, endNote.position, perfectFirst);
+        perfectAfter = Vector2.LerpUnclamped(startNote.position, endNote.position, perfectLast);
+
     }
+    Vector2 hitBefore, hitAfter, perfectBefore, perfectAfter;
 
     // Update is called once per frame
     void Update()
     {
+        Debug.DrawLine(hitBefore, hitBefore + Vector2.down);
+        Debug.DrawLine(hitAfter, hitAfter + Vector2.down);
+        Debug.DrawLine(perfectBefore, perfectBefore + Vector2.down, Color.green);
+        Debug.DrawLine(perfectAfter, perfectAfter + Vector2.down, Color.green);
         double now = AudioSettings.dspTime;
         double elapsedTotal = now - songStartTime;
         double elapsedFirstBeat = now - firstBeatTime;
+        if(now > elapsedFirstBeat && !foundFirst)
+        {
+            Debug.Log("START!!");
+            foundFirst = true;
+        }
         if (now < firstBeatTime) return;
 
         float currentSongBeats = (float)(elapsedFirstBeat / secsPerBeat);
@@ -107,10 +131,12 @@ public class SongController : MonoBehaviour
     {
         var toRemove = new List<NoteMarker>();
         foreach(var note in notesSpawned)
-        {
-            bool remove = note.UpdateNote(currentBeats, beatsInAdvance);
+        {           
+            note.UpdateNote(currentBeats, beatsInAdvance, out float ratio);
+            bool remove = ratio > expireRatio;
             if(remove)
             {
+                BeatExpired?.Invoke(note.beat, note.gameObject.activeInHierarchy);
                 Destroy(note.gameObject);
                 toRemove.Add(note);
             }
@@ -134,6 +160,7 @@ public class SongController : MonoBehaviour
         double now = AudioSettings.dspTime;
         double elapsedTotal = now - songStartTime;
         double elapsedFirstBeat = now - firstBeatTime;
+        float nowBeats = (float)(elapsedFirstBeat / secsPerBeat);
 
         noteHitType = NoteHitType.Skipped;
 
@@ -143,24 +170,34 @@ public class SongController : MonoBehaviour
 
             if(currentNote.note != note)
             {
-                noteHitType = NoteHitType.Missed;
+                noteHitType = NoteHitType.WrongKey;
+                ProcessNote(currentNote);
             }
             else
             {
                 // Current note
-                double beatDiff = now - notesSpawned[0].beat;
+                double beatDiff = nowBeats - notesSpawned[0].beat;
                 if (Math.Abs(beatDiff) <= hitThreshold)
                 {
-                    noteHitType = NoteHitType.OK;
+                    noteHitType = beatDiff <= perfectThreshold ? NoteHitType.Perfect : NoteHitType.OK;
+                    ProcessNote(currentNote);
                 }
                 else
                 {
-                    noteHitType = NoteHitType.Missed;
+                    noteHitType = NoteHitType.WrongTime;
+                    ProcessNote(currentNote);
                 }
             }
 
             return true;
         }
         return false;
+    }
+
+    public void ProcessNote(NoteMarker note)
+    {
+        notesSpawned.Remove(note);
+        // TODO: Add hit type feedback, perhaps mark + coroutine to avoid processing it before destruction
+        Destroy(note.gameObject);
     }
 }
