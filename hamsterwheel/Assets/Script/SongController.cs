@@ -100,6 +100,7 @@ public class SongController : MonoBehaviour
         Metronome.SetSignature(signatureHi, signatureLo);
 
         songStartTime = AudioSettings.dspTime;
+        
         firstBeatTime = songStartTime + CurrentSong.Offset;
 
         var lastBeat = CurrentSong.beats[CurrentSong.beats.Count - 1];
@@ -109,6 +110,8 @@ public class SongController : MonoBehaviour
         if(CurrentSong.songResource != null)
         {
             lastBeatTime = CurrentSong.songResource.length - CurrentSong.Offset;
+            SongPlayer.clip = CurrentSong.songResource;
+            SongPlayer.PlayScheduled(songStartTime);
         }
 
         Metronome.SetStartTime(songStartTime); // Reuse for music clip
