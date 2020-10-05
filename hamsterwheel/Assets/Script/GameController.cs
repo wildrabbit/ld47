@@ -107,6 +107,11 @@ public class GameController : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        StartGame(0);
+    }
+
+    public void StartGame(int levelIdx)
+    {
         _noteStates = new float[]
         {
             -1,-1,-1,-1
@@ -114,8 +119,14 @@ public class GameController : MonoBehaviour
         _restartPressed = -1;
 
         _songController.BeatExpired += OnBeatExpired;
-        _currentState = GameState.Running;
 
+        StartCoroutine(StartRoutine(levelIdx));
+    }
+
+    IEnumerator StartRoutine(int songIdx = 0)
+    {
+        DOTween.Clear();
+        _songController.InitLevel(songIdx);
         float bpmRatio = _songController.CurrentSong.bpm / 120f;
 
         Hamster.speed = bpmRatio;
@@ -127,6 +138,11 @@ public class GameController : MonoBehaviour
         powerBarLevel = startPowerLevel;
         powerBar.fillAmount = powerBarLevel / powerBarMaxLevel;
         StartCoroutine(LevelStartText());
+
+        yield return null;
+
+        _songController.StartGame();
+        _currentState = GameState.Running;
     }
 
     IEnumerator LevelStartText()
@@ -290,9 +306,24 @@ public class GameController : MonoBehaviour
         }
         else if (Mathf.Approximately(powerBarLevel, powerBarMaxLevel))
         {
-            // Next wheel state / next level / game won
-            StartCoroutine(VictoryRoutine());
+            // last song?
+            if(_songController.songIdx >= _songController.Songs.Length - 1)
+            {
+                // Next wheel state / next level / game won
+                StartCoroutine(VictoryRoutine());
+            }
+            else
+            {
+                // Load next song
+                NextLevel(_songController.songIdx + 1);
+            }
         }
+    }
+
+    private void NextLevel(int levelIdx)
+    {
+        // Clean stuff
+        StartGame(levelIdx);
     }
 
     private IEnumerator VictoryRoutine()
@@ -305,7 +336,7 @@ public class GameController : MonoBehaviour
         _songController.BeatExpired -= OnBeatExpired;
         _songController.GameWon();
         Wheel.Stop();
-        Hamster.speed = 0;
+        Hamster.SetTrigger("Win");
         yield return null;
     }
 

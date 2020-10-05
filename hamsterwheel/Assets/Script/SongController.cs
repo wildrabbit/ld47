@@ -6,7 +6,8 @@ using DG.Tweening;
 
 public class SongController : MonoBehaviour
 {
-    public Song CurrentSong;
+    public Song[] Songs;
+    [HideInInspector] public Song CurrentSong;
     public AudioSource SongPlayer;
     public GameObject WebMetronome;
     public GameObject ProcMetronome;
@@ -31,6 +32,8 @@ public class SongController : MonoBehaviour
     int signatureLo;
 
     int nextNoteIdx;
+
+    public int songIdx;
 
     float beatsShownInAdvance = 3;
     bool foundFirst;
@@ -61,14 +64,8 @@ public class SongController : MonoBehaviour
 
         Metronome.Ticked += OnMetroTicked;
 
-        if (CurrentSong != null && CurrentSong.songSheet != null)
-        {
-            CurrentSong.LoadSheet();
-            //SongPlayer.clip = CurrentSong.songResource;
-        }
-
         notesSpawned = new List<NoteMarker>();
-        noteHelper.gameObject.SetActive(false);
+        stopped = true;
     }
 
     private void OnMetroTicked(int arg1, double arg2, bool arg3)
@@ -88,8 +85,24 @@ public class SongController : MonoBehaviour
     {
         Init();    
     }
-    // Start is called before the first frame update
-    void Start()
+
+    public void InitLevel(int songIdx = 0)
+    {
+        this.songIdx = songIdx;
+        CurrentSong = Songs[this.songIdx];
+
+        if (CurrentSong != null && CurrentSong.songSheet != null)
+        {
+            CurrentSong.LoadSheet();
+            //SongPlayer.clip = CurrentSong.songResource;
+        }
+
+        ClearNotes();
+        noteHelper.gameObject.SetActive(false);
+        stopped = true;
+    }
+
+    public void StartGame()
     {
         bpm = CurrentSong.bpm;
         secsPerBeat = 60 / bpm;
@@ -100,14 +113,14 @@ public class SongController : MonoBehaviour
         Metronome.SetSignature(signatureHi, signatureLo);
 
         songStartTime = AudioSettings.dspTime;
-        
+
         firstBeatTime = songStartTime + CurrentSong.Offset;
 
         var lastBeat = CurrentSong.beats[CurrentSong.beats.Count - 1];
         int lastCompass = ((int)lastBeat.Beat) / signatureHi;
 
         lastBeatTime = signatureHi * (lastCompass + 2) * 60 / bpm;
-        if(CurrentSong.songResource != null)
+        if (CurrentSong.songResource != null)
         {
             lastBeatTime = CurrentSong.songResource.length - CurrentSong.Offset;
             SongPlayer.clip = CurrentSong.songResource;
@@ -129,8 +142,8 @@ public class SongController : MonoBehaviour
         perfectAfter = Vector2.LerpUnclamped(startNote.position, endNote.position, perfectLast);
 
         stopped = false;
-
     }
+
     Vector2 hitBefore, hitAfter, perfectBefore, perfectAfter;
 
     // Update is called once per frame
