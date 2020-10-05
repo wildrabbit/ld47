@@ -1773,6 +1773,11 @@ MonoBehaviour:
   perfect: {fileID: 137093687}
   victoryContainer: {fileID: 1659412821}
   startContainer: {fileID: 382458229}
+  sfxOk: {fileID: 8300000, guid: cad1ca71ce2e46d479ff01f2ffb20227, type: 3}
+  sfxPerfect: {fileID: 8300000, guid: cad1ca71ce2e46d479ff01f2ffb20227, type: 3}
+  sfxMiss: {fileID: 8300000, guid: c1bc60a894253cd42aecaed57f6f1359, type: 3}
+  sfxSkip: {fileID: 8300000, guid: c1bc60a894253cd42aecaed57f6f1359, type: 3}
+  _sfxPlayer: {fileID: 904843441}
   _songController: {fileID: 1640000849}
   _currentState: 0
 --- !u!4 &904843440
@@ -1800,7 +1805,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -2658,6 +2663,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ac02073e8b3ad84d88d79a99523875a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Songs:
+  - songResource: {fileID: 8300000, guid: 4b93b36fde86e22499a3bf304f3c4cb1, type: 3}
+    Offset: 0
+    bpm: 120
+    songSheet: {fileID: 4900000, guid: d285d67f80c45c54c9532189c9babba5, type: 3}
+    signatureHi: 4
+    signatureLo: 4
+  - songResource: {fileID: 8300000, guid: 4b93b36fde86e22499a3bf304f3c4cb1, type: 3}
+    Offset: 0
+    bpm: 120
+    songSheet: {fileID: 4900000, guid: d285d67f80c45c54c9532189c9babba5, type: 3}
+    signatureHi: 4
+    signatureLo: 4
   CurrentSong:
     songResource: {fileID: 8300000, guid: 4b93b36fde86e22499a3bf304f3c4cb1, type: 3}
     Offset: 0
@@ -2675,6 +2693,7 @@ MonoBehaviour:
   hitThreshold: 0.4
   perfectThreshold: 0.06
   expireRatio: 1.15
+  songIdx: 0
   noteHelper: {fileID: 79425841}
   stopped: 0
 --- !u!4 &1640000850

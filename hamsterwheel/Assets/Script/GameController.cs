@@ -72,6 +72,13 @@ public class GameController : MonoBehaviour
     public RectTransform victoryContainer;
     public RectTransform startContainer;
 
+    public AudioClip sfxOk;
+    public AudioClip sfxPerfect;
+    public AudioClip sfxMiss;
+    public AudioClip sfxSkip;
+
+    [SerializeField] AudioSource _sfxPlayer;
+
     [SerializeField] SongController _songController = null;
 
     InputAction _up;
@@ -275,24 +282,34 @@ public class GameController : MonoBehaviour
     #region power
     public void NoteHit(NoteHitType hitType)
     {
+        AudioClip clip = null;
         switch (hitType)
         {
             case NoteHitType.OK:
+                clip = sfxOk;
                 powerBarLevel += normalHitScore;
                 break;
             case NoteHitType.Perfect:
+                clip = sfxPerfect;
                 powerBarLevel += perfectHitScore;
                 break;
             case NoteHitType.WrongKey:
             case NoteHitType.WrongTime:
+                clip = sfxMiss;
                 powerBarLevel += wrongHitScore;
                 break;
             case NoteHitType.Skipped:
+                clip = sfxSkip;
                 powerBarLevel += skippedHitScore;
                 break;
             default:
                 break;
         }
+
+        //if (clip != null)
+        //{
+        //    _sfxPlayer.PlayOneShot(clip);
+        //}
         StartCoroutine(ShowText(hitType));
 
         powerBarLevel = Mathf.Clamp(powerBarLevel, 0, powerBarMaxLevel);
