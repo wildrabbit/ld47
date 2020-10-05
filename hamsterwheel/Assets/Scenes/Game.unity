@@ -1790,11 +1790,15 @@ MonoBehaviour:
   victoryContainer: {fileID: 1659412821}
   startContainer: {fileID: 382458229}
   sfxOk: {fileID: 8300000, guid: cad1ca71ce2e46d479ff01f2ffb20227, type: 3}
-  sfxPerfect: {fileID: 8300000, guid: cad1ca71ce2e46d479ff01f2ffb20227, type: 3}
+  sfxOk2: {fileID: 8300000, guid: c862df833b682f647945431ab96af06f, type: 3}
+  sfxPerfect: {fileID: 8300000, guid: c9307c1a442d2aa419cfcad624e9a50f, type: 3}
   sfxMiss: {fileID: 8300000, guid: c1bc60a894253cd42aecaed57f6f1359, type: 3}
   sfxSkip: {fileID: 8300000, guid: c1bc60a894253cd42aecaed57f6f1359, type: 3}
+  win: {fileID: 8300000, guid: 02d3ac854f9caa44db6b2d621daf3ced, type: 3}
+  winGame: {fileID: 8300000, guid: 02d3ac854f9caa44db6b2d621daf3ced, type: 3}
   _sfxPlayer: {fileID: 904843441}
   _songController: {fileID: 1640000849}
+  songIdx: 0
   _currentState: 0
 --- !u!4 &904843440
 Transform:
@@ -2690,6 +2694,12 @@ MonoBehaviour:
     Offset: 0
     bpm: 120
     songSheet: {fileID: 4900000, guid: d285d67f80c45c54c9532189c9babba5, type: 3}
+    signatureHi: 4
+    signatureLo: 4
+  - songResource: {fileID: 8300000, guid: 800657163bb6b5245ad61b48686798a1, type: 3}
+    Offset: 0
+    bpm: 150
+    songSheet: {fileID: 4900000, guid: 505f7bd0a22b1db4ab72145077d35e0f, type: 3}
     signatureHi: 4
     signatureLo: 4
   CurrentSong:

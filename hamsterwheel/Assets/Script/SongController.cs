@@ -285,6 +285,12 @@ public class SongController : MonoBehaviour
         return false;
     }
 
+    internal void StopPlayback()
+    {
+        SongPlayer.Stop();
+        stopped = true;
+    }
+
     public void GameWon()
     {
         stopped = true;

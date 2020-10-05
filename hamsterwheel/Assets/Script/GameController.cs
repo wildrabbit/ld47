@@ -73,9 +73,13 @@ public class GameController : MonoBehaviour
     public RectTransform startContainer;
 
     public AudioClip sfxOk;
+    public AudioClip sfxOk2;
     public AudioClip sfxPerfect;
     public AudioClip sfxMiss;
     public AudioClip sfxSkip;
+
+    public AudioClip win;
+    public AudioClip winGame;
 
     [SerializeField] AudioSource _sfxPlayer;
 
@@ -88,6 +92,8 @@ public class GameController : MonoBehaviour
     InputAction _restart;
 
     InputActionMap _map;
+
+    public int songIdx = 0;
 
     float[] _noteStates;
     float _restartPressed;
@@ -114,7 +120,7 @@ public class GameController : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        StartGame(0);
+        StartGame(songIdx);
     }
 
     public void StartGame(int levelIdx)
@@ -286,7 +292,7 @@ public class GameController : MonoBehaviour
         switch (hitType)
         {
             case NoteHitType.OK:
-                clip = sfxOk;
+                clip = UnityEngine.Random.value > 0.5? sfxOk : sfxOk2;
                 powerBarLevel += normalHitScore;
                 break;
             case NoteHitType.Perfect:
@@ -306,10 +312,11 @@ public class GameController : MonoBehaviour
                 break;
         }
 
-        //if (clip != null)
-        //{
-        //    _sfxPlayer.PlayOneShot(clip);
-        //}
+        if (clip != null)
+        {
+            _sfxPlayer.PlayOneShot(clip, 0.2f);
+            
+        }
         StartCoroutine(ShowText(hitType));
 
         powerBarLevel = Mathf.Clamp(powerBarLevel, 0, powerBarMaxLevel);
@@ -323,18 +330,31 @@ public class GameController : MonoBehaviour
         }
         else if (Mathf.Approximately(powerBarLevel, powerBarMaxLevel))
         {
+            _songController.StopPlayback();
             // last song?
-            if(_songController.songIdx >= _songController.Songs.Length - 1)
+            if (_songController.songIdx >= _songController.Songs.Length - 1)
             {
+                _sfxPlayer.PlayOneShot(winGame);
+
                 // Next wheel state / next level / game won
                 StartCoroutine(VictoryRoutine());
             }
             else
-            {
+            {                
+                _sfxPlayer.PlayOneShot(win);
+                StartCoroutine(NextLevelRoutine());
                 // Load next song
-                NextLevel(_songController.songIdx + 1);
             }
         }
+    }
+
+    private IEnumerator NextLevelRoutine()
+    {
+        _currentState = GameState.Init;
+
+        yield return new WaitForSeconds(2.0f);
+
+        NextLevel(_songController.songIdx + 1);
     }
 
     private void NextLevel(int levelIdx)
